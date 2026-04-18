@@ -1,107 +1,160 @@
 #!/usr/bin/env python3
 """
-Сканер белых подсетей для генерации VLESS подписки.
-Берёт IP из antifilter.download, проверяет доступность на 443,
-генерирует VLESS URI с параметрами Reality.
+Агрегатор VLESS подписок для обхода белых списков РФ.
+Собирает URI из публичных репо, проверяет работоспособность,
+приоритизирует серверы в белых подсетях РФ.
 """
 
 import asyncio
 import ipaddress
-import os
+import ssl
 import random
-import socket
 import urllib.request
 from datetime import datetime, timezone
-from urllib.parse import quote
+from urllib.parse import unquote
 
-# ─── Параметры твоего VLESS сервера ───────────────────────────────────────────
-UUID    = os.environ.get("VLESS_UUID",   "cf3aa741-4d0e-4734-a249-ae432b4b5394")
-PBK     = os.environ.get("VLESS_PBK",    "NRXWQpf05kTAHMAE3jrXx8ZuU5UekAWLXUrO5cC5Fkk")
-SID     = os.environ.get("VLESS_SID",    "754ee3270a95c89a")
-SNI     = os.environ.get("VLESS_SNI",    "www.tesla.com")
-FP      = os.environ.get("VLESS_FP",     "firefox")
-PORT    = int(os.environ.get("VLESS_PORT", "443"))
+# ─── Источники подписок ────────────────────────────────────────────────────────
+SOURCES = [
+    # zieng2 — специально для белых списков МТС/Теле2
+    "https://raw.githubusercontent.com/zieng2/wl/main/vless_lite.txt",
+    "https://raw.githubusercontent.com/zieng2/wl/main/vless_universal.txt",
 
-# ─── Настройки сканирования ────────────────────────────────────────────────────
-CONNECT_TIMEOUT   = 2.0    # секунд на TCP connect
-MAX_WORKERS       = 300    # параллельных проверок
-MAX_IPS_PER_NET   = 5      # IP из каждой подсети
-MAX_RESULTS       = 150    # максимум в итоговом файле
+    # igareck — CIDR подписки для белых списков мобильного интернета РФ
+    "https://raw.githubusercontent.com/igareck/vpn-configs-for-russia/main/Vless-Reality-White-Lists-Rus-Mobile.txt",
+    "https://raw.githubusercontent.com/igareck/vpn-configs-for-russia/main/Vless-Reality-White-Lists-Rus-Mobile-2.txt",
+    "https://raw.githubusercontent.com/igareck/vpn-configs-for-russia/main/WHITE-SNI-RU-all.txt",
+    "https://raw.githubusercontent.com/igareck/vpn-configs-for-russia/main/mts.txt",
+    "https://raw.githubusercontent.com/igareck/vpn-configs-for-russia/main/vless.txt",
+    "https://raw.githubusercontent.com/igareck/vpn-configs-for-russia/main/configs.txt",
 
-# Источники подсетей (antifilter.download)
-SUBNET_SOURCES = [
-    "https://antifilter.download/list/subnet.lst",
-    "https://antifilter.download/list/allyouneed.lst",
+    # whoahaow — верифицированные конфиги с сортировкой по пингу
+    "https://raw.githubusercontent.com/whoahaow/rjsxrd/main/all.txt",
+    "https://raw.githubusercontent.com/whoahaow/rjsxrd/main/all-secure.txt",
+
+    # kort0881 — большая коллекция для России
+    "https://raw.githubusercontent.com/kort0881/vpn-vless-configs-russia/main/vpn-files/all_posts.txt",
+    "https://raw.githubusercontent.com/kort0881/russia-whitelist/main/vless.txt",
 ]
 
-# ─── Генерация URI ─────────────────────────────────────────────────────────────
-def make_uri(ip: str, index: int, tag: str = "WL") -> str:
-    name = quote(f"{tag} — #{index}")
-    return (
-        f"vless://{UUID}@{ip}:{PORT}"
-        f"?type=tcp&encryption=none&security=reality"
-        f"&pbk={PBK}&fp={FP}&sni={SNI}&sid={SID}"
-        f"&spx=%2F&flow=xtls-rprx-vision"
-        f"#{name}"
-    )
+# ─── Известные белые подсети РФ ───────────────────────────────────────────────
+WHITE_SUBNETS = [
+    # VK / Mail.ru
+    "95.163.0.0/16", "87.240.0.0/16", "93.186.224.0/19",
+    "185.30.176.0/22", "185.241.192.0/22", "46.8.16.0/20",
+    "178.20.40.0/21", "217.69.128.0/19", "94.100.176.0/22",
+    "89.208.224.0/19", "146.185.240.0/21", "213.219.212.0/22",
+    # Яндекс
+    "178.154.128.0/17", "5.45.192.0/18", "213.180.192.0/19",
+    "77.88.0.0/18", "87.250.224.0/19", "95.108.0.0/16",
+    # Ростелеком / Теле2
+    "195.19.220.0/22", "213.248.96.0/19", "217.20.144.0/20",
+    "85.30.128.0/19", "176.100.16.0/20", "46.242.16.0/20",
+    # Selectel
+    "178.72.128.0/17", "185.88.144.0/21",
+    # Timeweb
+    "185.104.112.0/22", "194.58.96.0/19", "92.53.96.0/19",
+    # Aeza
+    "83.166.232.0/21",
+    # МТС
+    "80.66.64.0/19", "85.142.24.0/21",
+    # Билайн
+    "213.234.0.0/16", "217.118.64.0/18",
+    # DataLine / крупные RU ЦОД
+    "212.193.0.0/19", "91.213.160.0/21",
+]
 
-# ─── Загрузка подсетей ─────────────────────────────────────────────────────────
-def fetch_subnets() -> list[str]:
-    subnets = set()
-    for url in SUBNET_SOURCES:
+_WHITE_NETS = [ipaddress.ip_network(s, strict=False) for s in WHITE_SUBNETS]
+
+# ─── Настройки ─────────────────────────────────────────────────────────────────
+CONNECT_TIMEOUT = 2.5
+TLS_TIMEOUT     = 3.0
+MAX_WORKERS     = 300
+MAX_RESULTS     = 100
+
+# ─── Парсинг URI ───────────────────────────────────────────────────────────────
+def parse_uri(line: str) -> dict | None:
+    line = line.strip()
+    if not line.startswith("vless://"):
+        return None
+    try:
+        without_scheme = line[8:]
+        at_idx = without_scheme.rfind("@")
+        if at_idx == -1:
+            return None
+        hostport = without_scheme[at_idx+1:].split("?")[0].split("#")[0]
+        if ":" in hostport:
+            host, port = hostport.rsplit(":", 1)
+            return {"uri": line, "host": host.strip("[]"), "port": int(port)}
+    except Exception:
+        pass
+    return None
+
+def is_in_white_subnet(host: str) -> bool:
+    try:
+        ip = ipaddress.ip_address(host)
+        return any(ip in net for net in _WHITE_NETS)
+    except ValueError:
+        return False  # hostname — не считаем белым
+
+def get_label(uri: str) -> str:
+    if "#" in uri:
+        return unquote(uri.split("#", 1)[1])
+    return ""
+
+# ─── Загрузка источников ──────────────────────────────────────────────────────
+def fetch_uris() -> list[dict]:
+    seen = {}
+    for url in SOURCES:
         try:
-            print(f"[*] Загружаю {url}")
-            with urllib.request.urlopen(url, timeout=15) as r:
-                for line in r.read().decode().splitlines():
-                    line = line.strip()
-                    if line and not line.startswith("#"):
-                        try:
-                            ipaddress.ip_network(line, strict=False)
-                            subnets.add(line)
-                        except ValueError:
-                            pass
+            print(f"[*] {url.split('/')[-1]} ({url.split('/')[4]})")
+            req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
+            with urllib.request.urlopen(req, timeout=15) as r:
+                text = r.read().decode(errors="ignore")
+            count = 0
+            for line in text.splitlines():
+                parsed = parse_uri(line)
+                if parsed:
+                    key = f"{parsed['host']}:{parsed['port']}"
+                    if key not in seen:
+                        seen[key] = parsed
+                        count += 1
+            print(f"    → +{count} новых (всего: {len(seen)})")
         except Exception as e:
-            print(f"[!] Ошибка загрузки {url}: {e}")
-    print(f"[*] Загружено подсетей: {len(subnets)}")
-    return list(subnets)
+            print(f"    [!] Ошибка: {e}")
 
-# ─── Выбор IP из подсетей ──────────────────────────────────────────────────────
-def sample_ips(subnets: list[str], per_net: int) -> list[str]:
-    ips = []
-    for cidr in subnets:
-        try:
-            net = ipaddress.ip_network(cidr, strict=False)
-            hosts = list(net.hosts())
-            if not hosts:
-                continue
-            sample = random.sample(hosts, min(per_net, len(hosts)))
-            ips.extend(str(ip) for ip in sample)
-        except Exception:
-            pass
-    random.shuffle(ips)
-    return ips
+    result = list(seen.values())
+    print(f"\n[*] Уникальных URI для проверки: {len(result)}")
+    return result
 
-# ─── Асинхронная TCP проверка ──────────────────────────────────────────────────
-async def check_ip(ip: str, semaphore: asyncio.Semaphore) -> str | None:
+# ─── Проверка TCP + TLS ────────────────────────────────────────────────────────
+async def check_server(server: dict, semaphore: asyncio.Semaphore) -> dict | None:
+    host, port = server["host"], server["port"]
     async with semaphore:
         try:
-            _, writer = await asyncio.wait_for(
-                asyncio.open_connection(ip, PORT),
-                timeout=CONNECT_TIMEOUT
-            )
-            writer.close()
-            try:
-                await writer.wait_closed()
-            except Exception:
-                pass
-            return ip
-        except Exception:
+            _, w = await asyncio.wait_for(
+                asyncio.open_connection(host, port), timeout=CONNECT_TIMEOUT)
+            w.close()
+            try: await w.wait_closed()
+            except: pass
+        except:
+            return None
+        try:
+            ctx = ssl.create_default_context()
+            ctx.check_hostname = False
+            ctx.verify_mode = ssl.CERT_NONE
+            _, w = await asyncio.wait_for(
+                asyncio.open_connection(host, port, ssl=ctx), timeout=TLS_TIMEOUT)
+            w.close()
+            try: await w.wait_closed()
+            except: pass
+            return server
+        except:
             return None
 
-async def scan(ips: list[str]) -> list[str]:
+async def scan(servers: list[dict]) -> list[dict]:
     semaphore = asyncio.Semaphore(MAX_WORKERS)
-    print(f"[*] Сканирую {len(ips)} IP на порту {PORT}...")
-    tasks = [check_ip(ip, semaphore) for ip in ips]
+    print(f"[*] Проверяю {len(servers)} серверов (TCP+TLS)...")
+    tasks = [check_server(s, semaphore) for s in servers]
     results = []
     done = 0
     for coro in asyncio.as_completed(tasks):
@@ -109,38 +162,62 @@ async def scan(ips: list[str]) -> list[str]:
         done += 1
         if result:
             results.append(result)
-            print(f"[+] {result}  (найдено: {len(results)}, проверено: {done}/{len(ips)})")
-        if len(results) >= MAX_RESULTS:
-            break
+            white = "✓ белая" if is_in_white_subnet(result["host"]) else "  внешняя"
+            print(f"[+] {white} {result['host']}:{result['port']}")
+    print(f"\n[*] Живых: {len(results)} из {done}")
     return results
 
-# ─── Основная логика ───────────────────────────────────────────────────────────
-def build_subscription(working_ips: list[str]) -> str:
-    lines = []
-    now = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
-    lines.append(f"# Обновлено: {now}")
-    lines.append(f"# Серверов: {len(working_ips)}")
-    lines.append("")
-    for i, ip in enumerate(working_ips, 1):
-        lines.append(make_uri(ip, i))
-    return "\n".join(lines) + "\n"
-
+# ─── Сборка подписки ──────────────────────────────────────────────────────────
 async def main():
-    subnets = fetch_subnets()
-    if not subnets:
-        print("[!] Не удалось загрузить подсети, выход")
+    all_servers = fetch_uris()
+    if not all_servers:
+        print("[!] Нет URI для проверки")
         return
 
-    ips = sample_ips(subnets, MAX_IPS_PER_NET)
-    print(f"[*] Отобрано IP для проверки: {len(ips)}")
+    living = await scan(all_servers)
+    if not living:
+        print("[!] Нет живых серверов")
+        return
 
-    working = await scan(ips)
-    print(f"\n[*] Рабочих IP: {len(working)}")
+    # Разделяем на белые подсети (приоритет) и остальные
+    white = [s for s in living if is_in_white_subnet(s["host"])]
+    other = [s for s in living if not is_in_white_subnet(s["host"])]
+    random.shuffle(white)
+    random.shuffle(other)
 
-    content = build_subscription(working)
+    print(f"[*] В белых подсетях РФ: {len(white)}, внешние: {len(other)}")
+
+    # Белые идут первыми
+    final = (white + other)[:MAX_RESULTS]
+
+    import base64
+    profile_title = base64.b64encode("JL33T_WL".encode()).decode()
+    now = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
+    lines = [
+        f"# profile-title: {profile_title}",
+        f"# Обновлено: {now}",
+        f"# Серверов: {len(final)} (белые подсети РФ: {len([s for s in final if is_in_white_subnet(s['host'])])})",
+        f"# Источники: zieng2, igareck, whoahaow, kort0881",
+        "",
+    ]
+    for s in final:
+        uri = s["uri"]
+        # Добавляем пометку в название
+        if is_in_white_subnet(s["host"]):
+            prefix = "🇷🇺 WL"
+        else:
+            prefix = "🌍"
+        # Меняем или добавляем имя
+        if "#" in uri:
+            base, name = uri.rsplit("#", 1)
+            uri = f"{base}#{prefix} {unquote(name)}"
+        else:
+            uri = f"{uri}#{prefix}"
+        lines.append(uri)
+
     with open("vless.txt", "w") as f:
-        f.write(content)
-    print(f"[*] Сохранено в vless.txt")
+        f.write("\n".join(lines) + "\n")
+    print(f"[*] Сохранено {len(final)} серверов в vless.txt")
 
 if __name__ == "__main__":
     asyncio.run(main())
