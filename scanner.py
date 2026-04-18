@@ -190,11 +190,9 @@ async def main():
     # Белые идут первыми
     final = (white + other)[:MAX_RESULTS]
 
-    import base64
-    profile_title = base64.b64encode("JL33T_WL".encode()).decode()
     now = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
     lines = [
-        f"# profile-title: {profile_title}",
+        f"# profile-title: JL33T_WL",
         f"# Обновлено: {now}",
         f"# Серверов: {len(final)} (белые подсети РФ: {len([s for s in final if is_in_white_subnet(s['host'])])})",
         f"# Источники: zieng2, igareck, whoahaow, kort0881",
