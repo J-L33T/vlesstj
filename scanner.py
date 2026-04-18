@@ -198,7 +198,19 @@ async def main():
         "",
     ]
     for s in final:
-        lines.append(s["uri"])
+        uri = s["uri"]
+        # Добавляем пометку в название
+        if is_in_white_subnet(s["host"]):
+            prefix = "🇷🇺 WL"
+        else:
+            prefix = "🌍"
+        # Меняем или добавляем имя
+        if "#" in uri:
+            base, name = uri.rsplit("#", 1)
+            uri = f"{base}#{prefix} {unquote(name)}"
+        else:
+            uri = f"{uri}#{prefix}"
+        lines.append(uri)
 
     with open("vless.txt", "w") as f:
         f.write("\n".join(lines) + "\n")
