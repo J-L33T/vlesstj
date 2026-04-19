@@ -1,14 +1,12 @@
 # profile-title: JL33T_WL
-# Обновлено: 2026-04-19 21:41 UTC
-# Серверов: 9 (только белые подсети РФ)
+# Обновлено: 2026-04-19 22:41 UTC
+# Серверов: 7 (только белые подсети РФ)
 # Источники: zieng2, igareck, whoahaow, kort0881
 
-vless://19ef3d02-1c55-4fec-9794-6def8cbac396@95.163.208.136:5443?flow=xtls-rprx-vision&encryption=none&type=tcp&security=reality&fp=random&sni=i.oneme.ru&pbk=-nZqMxt7meVxfnQeK46MAYh5scb0M6La82axD8KHJXk&sid=91e2a4c7#🇷🇺 WL 🇩🇪 Germany — #86
-vless://5fd09d25-944e-4002-8d35-a8bc77d36e98@89.208.229.138:443?flow=xtls-rprx-vision&encryption=none&type=tcp&security=reality&fp=qq&sni=ads.x5.ru&pbk=1vSZjvhZO01oAEH3b7eebR1qF5dLU1Dq2E7xu8pwGSs&sid=428ef87fd47a3a32#🇷🇺 WL 🇩🇪 Germany — #155
-vless://75807638-6f19-2710-ae08-38492ee85c88@178.72.181.77:52006?security=tls&encryption=none&insecure=1&headerType=none&type=tcp&allowInsecure=1&flow=xtls-rprx-vision#🇷🇺 WL 🇵🇱 Poland | 🌐 | [IPv6] [*CIDR]
-vless://adb97b6a-4b14-4dac-a38c-aca89cf47245@95.163.209.168:443?flow=xtls-rprx-vision&encryption=none&type=tcp&security=reality&fp=firefox&sni=ads.x5.ru&pbk=djTtGqd0XWqtt_WHukU7BTPQSn9o7gIpAosAxMy8tUo&sid=ea1058117be12087#🇷🇺 WL 🇳🇱 The Netherlands — #258
 vless://75807638-6f19-01f4-ae08-38492ee85c88@178.72.181.91:52006?security=tls&encryption=none&insecure=1&headerType=none&fp=chrome&type=tcp&allowInsecure=1&flow=xtls-rprx-vision#🇷🇺 WL 🇩🇪 Germany | 🌐 | [IPv6] [*CIDR]
-vless://1a1dc70c-6fb5-49cc-ab33-5a90e68f7bc6@89.208.228.124:993?flow=xtls-rprx-vision&encryption=none&type=tcp&security=reality&fp=qq&sni=max.ru&pbk=mAu8QDi3pbmMCFg9kKC-ZBIHdtnXeCuZt3VnAw6vlH4&sid=ad7dab462a323acb#🇷🇺 WL 🇩🇪 Germany — #158
-vless://0678c5c6-d3f8-4cd8-9f66-3dbf5220540a@95.163.215.62:2443?flow=xtls-rprx-vision&encryption=none&type=tcp&security=reality&fp=chrome&sni=www.ads.x5.ru&pbk=9n9QFGzAagGdQBU7uMdLRaGhk-CuPcVwEZdbegnUeDs&sid=d2e8ddc7e3dda3#🇷🇺 WL 🇫🇮 Finland — #194
-vless://75807638-6f19-01f4-ae08-38492ee85c88@178.72.181.92:52006?flow=xtls-rprx-vision&encryption=none&type=tcp&security=tls&fp=chrome#🇷🇺 WL 🇩🇪 Germany — #107
-vless://b79809db-54de-4232-b1bf-4283a6ccea85@95.163.215.62:1443?flow=xtls-rprx-vision&encryption=none&type=tcp&security=reality&fp=chrome&sni=www.ads.x5.ru&pbk=uxTRchssDvKI0PVrRt1QmlH2bHfnyD89-pmBt1vnVl8&sid=f8b3511a73b7#🇷🇺 WL 🇩🇪 Germany — #97
+vless://19ef3d02-1c55-4fec-9794-6def8cbac396@95.163.208.136:5443?flow=xtls-rprx-vision&encryption=none&type=tcp&security=reality&fp=random&sni=i.oneme.ru&pbk=-nZqMxt7meVxfnQeK46MAYh5scb0M6La82axD8KHJXk&sid=91e2a4c7#🇷🇺 WL 🇩🇪 Germany — #43
+vless://adb97b6a-4b14-4dac-a38c-aca89cf47245@95.163.209.168:443?flow=xtls-rprx-vision&encryption=none&type=tcp&security=reality&fp=firefox&sni=ads.x5.ru&pbk=djTtGqd0XWqtt_WHukU7BTPQSn9o7gIpAosAxMy8tUo&sid=ea1058117be12087#🇷🇺 WL 🇳🇱 The Netherlands — #117
+vless://b79809db-54de-4232-b1bf-4283a6ccea85@95.163.215.62:1443?flow=xtls-rprx-vision&encryption=none&type=tcp&security=reality&fp=chrome&sni=www.ads.x5.ru&pbk=uxTRchssDvKI0PVrRt1QmlH2bHfnyD89-pmBt1vnVl8&sid=f8b3511a73b7#🇷🇺 WL 🇩🇪 Germany — #50
+vless://0678c5c6-d3f8-4cd8-9f66-3dbf5220540a@95.163.215.62:2443?flow=xtls-rprx-vision&encryption=none&type=tcp&security=reality&fp=chrome&sni=www.ads.x5.ru&pbk=9n9QFGzAagGdQBU7uMdLRaGhk-CuPcVwEZdbegnUeDs&sid=d2e8ddc7e3dda3#🇷🇺 WL 🇫🇮 Finland — #79
+vless://75807638-6f19-2710-ae08-38492ee85c88@178.72.181.77:52006?security=tls&encryption=none&insecure=1&headerType=none&type=tcp&allowInsecure=1&flow=xtls-rprx-vision#🇷🇺 WL 🇵🇱 Poland | 🌐 | [IPv6] [*CIDR]
+vless://75807638-6f19-01f4-ae08-38492ee85c88@178.72.181.92:52006?flow=xtls-rprx-vision&encryption=none&type=tcp&security=tls&fp=chrome#🇷🇺 WL 🇩🇪 Germany — #59
