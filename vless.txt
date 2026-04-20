@@ -1,17 +1,16 @@
 # profile-title: JL33T_WL
-# Обновлено: 2026-04-20 15:20 UTC
-# Серверов: 12 (только белые подсети РФ)
+# Обновлено: 2026-04-20 17:10 UTC
+# Серверов: 11 (только белые подсети РФ)
 # Источники: zieng2, igareck, whoahaow, kort0881
 
-vless://75807638-6f19-07d0-ae08-38492ee85c88@178.72.181.42:52006?flow=xtls-rprx-vision&encryption=none&type=tcp&security=tls&fp=chrome#🇷🇺 WL 🇷🇺 Selectel — #19
-vless://75807638-6f19-0320-ae08-38492ee85c88@178.72.162.148:52006?type=tcp&security=tls&encryption=none&alpn=http%2F1.1&flow=xtls-rprx-vision&insecure=1#🇷🇺 WL 🇧🇪 Belgium [*CIDR]
-vless://75807638-6f19-0320-ae08-38492ee85c88@178.72.162.155:52006?type=tcp&security=tls&encryption=none&alpn=http%2F1.1&flow=xtls-rprx-vision&insecure=1#🇷🇺 WL 🇧🇪 Belgium [*CIDR]
-vless://75807638-6f19-01f4-ae08-38492ee85c88@178.72.181.89:52006?flow=xtls-rprx-vision&encryption=none&type=tcp&security=tls&fp=chrome#🇷🇺 WL 🇩🇪 Germany — #123
-vless://75807638-6f19-0320-ae08-38492ee85c88@178.72.162.156:52006?type=tcp&security=tls&encryption=none&alpn=http%2F1.1&flow=xtls-rprx-vision&insecure=1#🇷🇺 WL 🇧🇪 Belgium [*CIDR]
-vless://75807638-6f19-0320-ae08-38492ee85c88@178.72.162.150:52006?type=tcp&security=tls&encryption=none&alpn=http%2F1.1&flow=xtls-rprx-vision&insecure=1#🇷🇺 WL 🇧🇪 Belgium [*CIDR]
-vless://75807638-6f19-2328-ae08-38492ee85c88@178.72.162.102:52006?type=tcp&security=tls&encryption=none&alpn=http%2F1.1&flow=xtls-rprx-vision&insecure=1#🇷🇺 WL 🇪🇪 Estonia | 🌐 [*CIDR]
-vless://75807638-6f19-0320-ae08-38492ee85c88@178.72.162.153:52006?type=tcp&security=tls&encryption=none&alpn=http%2F1.1&flow=xtls-rprx-vision&insecure=1#🇷🇺 WL 🇧🇪 Belgium [*CIDR]
-vless://b79809db-54de-4232-b1bf-4283a6ccea85@95.163.215.62:1443?flow=xtls-rprx-vision&encryption=none&type=tcp&security=reality&fp=chrome&sni=www.ads.x5.ru&pbk=uxTRchssDvKI0PVrRt1QmlH2bHfnyD89-pmBt1vnVl8&sid=f8b3511a73b7#🇷🇺 WL 🇩🇪 Germany — #122
+vless://75807638-6f19-0320-ae08-38492ee85c88@178.72.162.152:52006?type=tcp&security=tls&encryption=none&alpn=http%2F1.1&flow=xtls-rprx-vision&insecure=1#🇷🇺 WL 🌐 Anycast-IP [*CIDR]
 vless://75807638-6f19-01f4-ae08-38492ee85c88@178.72.132.32:52006?type=tcp&security=tls&encryption=none&alpn=http%2F1.1&flow=xtls-rprx-vision&insecure=1#🇷🇺 WL 🇩🇪 Germany | 🌐 | [IPv6] [*CIDR]
-vless://0678c5c6-d3f8-4cd8-9f66-3dbf5220540a@95.163.215.62:2443?flow=xtls-rprx-vision&encryption=none&type=tcp&security=reality&fp=chrome&sni=www.ads.x5.ru&pbk=9n9QFGzAagGdQBU7uMdLRaGhk-CuPcVwEZdbegnUeDs&sid=d2e8ddc7e3dda3#🇷🇺 WL 🇫🇮 Finland — #205
-vless://75807638-6f19-0320-ae08-38492ee85c88@178.72.162.152:52006?type=tcp&security=tls&encryption=none&alpn=http%2F1.1&flow=xtls-rprx-vision&insecure=1#🇷🇺 WL 🇧🇪 Belgium [*CIDR]
+vless://75807638-6f19-0320-ae08-38492ee85c88@178.72.162.150:52006?type=tcp&security=tls&encryption=none&alpn=http%2F1.1&flow=xtls-rprx-vision&insecure=1#🇷🇺 WL 🌐 Anycast-IP [*CIDR]
+vless://184e78e7-16c3-4c92-bc43-6eb168d5169b@95.163.183.144:443?flow=xtls-rprx-vision&encryption=none&type=tcp&security=reality&fp=chrome&sni=beeline.ru&pbk=Oc4VtwpdXGT4jlQZVEEgTTjeBx97uJ0sON2ek629plE&sid=d928&spx=%2F#🇷🇺 WL 🇷🇴 Romania — #383
+vless://75807638-6f19-0320-ae08-38492ee85c88@178.72.162.153:52006?type=tcp&security=tls&encryption=none&alpn=http%2F1.1&flow=xtls-rprx-vision&insecure=1#🇷🇺 WL 🌐 Anycast-IP [*CIDR]
+vless://75807638-6f19-2328-ae08-38492ee85c88@178.72.162.102:52006?type=tcp&security=tls&encryption=none&alpn=http%2F1.1&flow=xtls-rprx-vision&insecure=1#🇷🇺 WL 🇪🇪 Estonia | 🌐 [*CIDR]
+vless://75807638-6f19-01f4-ae08-38492ee85c88@178.72.181.94:52006?flow=xtls-rprx-vision&encryption=none&type=tcp&security=tls&fp=chrome#🇷🇺 WL 🇩🇪 Germany — #100
+vless://75807638-6f19-0320-ae08-38492ee85c88@178.72.162.155:52006?allowInsecure=1&insecure=1&type=tcp&security=tls&alpn=http%2F1.1&flow=xtls-rprx-vision#🇷🇺 WL 🌐 Anycast-IP [*CIDR]
+vless://75807638-6f19-0320-ae08-38492ee85c88@178.72.162.156:52006?type=tcp&security=tls&encryption=none&alpn=http%2F1.1&flow=xtls-rprx-vision&insecure=1#🇷🇺 WL 🌐 Anycast-IP [*CIDR]
+vless://75807638-6f19-07d0-ae08-38492ee85c88@178.72.181.28:52006?flow=xtls-rprx-vision&encryption=none&type=tcp&security=tls&fp=chrome#🇷🇺 WL 🇷🇺 Selectel — #15
+vless://75807638-6f19-0320-ae08-38492ee85c88@178.72.162.148:52006?type=tcp&security=tls&encryption=none&alpn=http%2F1.1&flow=xtls-rprx-vision&insecure=1#🇷🇺 WL 🌐 Anycast-IP [*CIDR]
