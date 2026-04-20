@@ -1,11 +1,11 @@
 # profile-title: JL33T_WL
-# Обновлено: 2026-04-19 23:42 UTC
+# Обновлено: 2026-04-20 03:28 UTC
 # Серверов: 6 (только белые подсети РФ)
 # Источники: zieng2, igareck, whoahaow, kort0881
 
-vless://b79809db-54de-4232-b1bf-4283a6ccea85@95.163.215.62:1443?flow=xtls-rprx-vision&encryption=none&type=tcp&security=reality&fp=chrome&sni=www.ads.x5.ru&pbk=uxTRchssDvKI0PVrRt1QmlH2bHfnyD89-pmBt1vnVl8&sid=f8b3511a73b7#🇷🇺 WL 🇩🇪 Germany — #36
+vless://75807638-6f19-01f4-ae08-38492ee85c88@178.72.181.90:52006?flow=xtls-rprx-vision&encryption=none&type=tcp&security=tls&fp=chrome#🇷🇺 WL 🇩🇪 Germany — #95
+vless://b79809db-54de-4232-b1bf-4283a6ccea85@95.163.215.62:1443?flow=xtls-rprx-vision&encryption=none&type=tcp&security=reality&fp=chrome&sni=www.ads.x5.ru&pbk=uxTRchssDvKI0PVrRt1QmlH2bHfnyD89-pmBt1vnVl8&sid=f8b3511a73b7#🇷🇺 WL 🇩🇪 Germany — #91
 vless://75807638-6f19-2710-ae08-38492ee85c88@178.72.181.77:52006?security=tls&encryption=none&insecure=1&headerType=none&type=tcp&allowInsecure=1&flow=xtls-rprx-vision#🇷🇺 WL 🇵🇱 Poland | 🌐 | [IPv6] [*CIDR]
-vless://19ef3d02-1c55-4fec-9794-6def8cbac396@95.163.208.136:5443?flow=xtls-rprx-vision&encryption=none&type=tcp&security=reality&fp=random&sni=i.oneme.ru&pbk=-nZqMxt7meVxfnQeK46MAYh5scb0M6La82axD8KHJXk&sid=91e2a4c7#🇷🇺 WL 🇩🇪 Germany — #30
-vless://75807638-6f19-01f4-ae08-38492ee85c88@178.72.181.90:52006?flow=xtls-rprx-vision&encryption=none&type=tcp&security=tls&fp=chrome#🇷🇺 WL 🇩🇪 Germany — #42
+vless://19ef3d02-1c55-4fec-9794-6def8cbac396@95.163.208.136:5443?flow=xtls-rprx-vision&encryption=none&type=tcp&security=reality&fp=random&sni=i.oneme.ru&pbk=-nZqMxt7meVxfnQeK46MAYh5scb0M6La82axD8KHJXk&sid=91e2a4c7#🇷🇺 WL 🇩🇪 Germany — #73
+vless://0678c5c6-d3f8-4cd8-9f66-3dbf5220540a@95.163.215.62:2443?flow=xtls-rprx-vision&encryption=none&type=tcp&security=reality&fp=chrome&sni=www.ads.x5.ru&pbk=9n9QFGzAagGdQBU7uMdLRaGhk-CuPcVwEZdbegnUeDs&sid=d2e8ddc7e3dda3#🇷🇺 WL 🇫🇮 Finland — #123
 vless://75807638-6f19-01f4-ae08-38492ee85c88@178.72.181.91:52006?security=tls&encryption=none&insecure=1&headerType=none&fp=chrome&type=tcp&allowInsecure=1&flow=xtls-rprx-vision#🇷🇺 WL 🇩🇪 Germany | 🌐 | [IPv6] [*CIDR]
-vless://0678c5c6-d3f8-4cd8-9f66-3dbf5220540a@95.163.215.62:2443?flow=xtls-rprx-vision&encryption=none&type=tcp&security=reality&fp=chrome&sni=www.ads.x5.ru&pbk=9n9QFGzAagGdQBU7uMdLRaGhk-CuPcVwEZdbegnUeDs&sid=d2e8ddc7e3dda3#🇷🇺 WL 🇫🇮 Finland — #74
