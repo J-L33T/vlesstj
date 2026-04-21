@@ -1,15 +1,15 @@
 # profile-title: JL33T_WL
-# Обновлено: 2026-04-20 23:50 UTC
+# Обновлено: 2026-04-21 03:19 UTC
 # Серверов: 10 (только белые подсети РФ)
 # Источники: zieng2, igareck, whoahaow, kort0881
 
-vless://75807638-6f19-0320-ae08-38492ee85c88@178.72.162.148:52006?type=tcp&security=tls&encryption=none&alpn=http%2F1.1&flow=xtls-rprx-vision&insecure=1#🇷🇺 WL 🇧🇪 Belgium [*CIDR]
-vless://75807638-6f19-2328-ae08-38492ee85c88@178.72.162.102:52006?type=tcp&security=tls&encryption=none&alpn=http%2F1.1&flow=xtls-rprx-vision&insecure=1#🇷🇺 WL 🇪🇪 Estonia | 🌐 [*CIDR]
-vless://75807638-6f19-0320-ae08-38492ee85c88@178.72.162.153:52006?type=tcp&security=tls&encryption=none&alpn=http%2F1.1&flow=xtls-rprx-vision&insecure=1#🇷🇺 WL 🇧🇪 Belgium [*CIDR]
-vless://75807638-6f19-0320-ae08-38492ee85c88@178.72.162.152:52006?type=tcp&security=tls&encryption=none&alpn=http%2F1.1&flow=xtls-rprx-vision&insecure=1#🇷🇺 WL 🇧🇪 Belgium [*CIDR]
-vless://75807638-6f19-01f4-ae08-38492ee85c88@178.72.181.92:52006?flow=xtls-rprx-vision&encryption=none&type=tcp&security=tls&fp=chrome#🇷🇺 WL 🇩🇪 Germany — #31
-vless://75807638-6f19-07d0-ae08-38492ee85c88@178.72.181.42:52006?allowInsecure=1&insecure=1&type=tcp&security=tls&fp=chrome&flow=xtls-rprx-vision#🇷🇺 WL 🇷🇺 Russia [*CIDR]
-vless://75807638-6f19-01f4-ae08-38492ee85c88@178.72.132.32:52006?type=tcp&security=tls&encryption=none&alpn=http%2F1.1&flow=xtls-rprx-vision&insecure=1#🇷🇺 WL 🇩🇪 Germany | 🌐 [*CIDR]
-vless://75807638-6f19-0320-ae08-38492ee85c88@178.72.162.150:52006?type=tcp&security=tls&encryption=none&alpn=http%2F1.1&flow=xtls-rprx-vision&insecure=1#🇷🇺 WL 🇧🇪 Belgium [*CIDR]
 vless://75807638-6f19-0320-ae08-38492ee85c88@178.72.162.155:52006?allowInsecure=1&insecure=1&type=tcp&security=tls&alpn=http%2F1.1&flow=xtls-rprx-vision#🇷🇺 WL 🇧🇪 Belgium [*CIDR]
-vless://75807638-6f19-0320-ae08-38492ee85c88@178.72.162.156:52006?type=tcp&security=tls&encryption=none&alpn=http%2F1.1&flow=xtls-rprx-vision&insecure=1#🇷🇺 WL 🇧🇪 Belgium [*CIDR]
+vless://75807638-6f19-0320-ae08-38492ee85c88@178.72.162.150:52006?type=tcp&security=tls&encryption=none&alpn=http%2F1.1&flow=xtls-rprx-vision&insecure=1#🇷🇺 WL 🇧🇪 Belgium [*CIDR]
+vless://75807638-6f19-2328-ae08-38492ee85c88@178.72.162.102:52006?type=tcp&security=tls&encryption=none&alpn=http%2F1.1&flow=xtls-rprx-vision&insecure=1#🇷🇺 WL 🇪🇪 Estonia | 🌐 [*CIDR]
+vless://75807638-6f19-07d0-ae08-38492ee85c88@178.72.162.156:52006?type=tcp&security=tls&encryption=none&alpn=http%2F1.1&flow=xtls-rprx-vision&insecure=1#🇷🇺 WL 🇷🇴 Romania [*CIDR]
+vless://75807638-6f19-01f4-ae08-38492ee85c88@178.72.132.32:52006?type=tcp&security=tls&encryption=none&alpn=http%2F1.1&flow=xtls-rprx-vision&insecure=1#🇷🇺 WL 🇩🇪 Germany | 🌐 | [IPv6] [*CIDR]
+vless://75807638-6f19-0320-ae08-38492ee85c88@178.72.162.148:52006?type=tcp&security=tls&encryption=none&alpn=http%2F1.1&flow=xtls-rprx-vision&insecure=1#🇷🇺 WL 🇧🇪 Belgium [*CIDR]
+vless://75807638-6f19-0320-ae08-38492ee85c88@178.72.162.153:52006?type=tcp&security=tls&encryption=none&alpn=http%2F1.1&flow=xtls-rprx-vision&insecure=1#🇷🇺 WL 🇧🇪 Belgium [*CIDR]
+vless://75807638-6f19-07d0-ae08-38492ee85c88@178.72.181.42:52006?allowInsecure=1&insecure=1&type=tcp&security=tls&fp=chrome&flow=xtls-rprx-vision#🇷🇺 WL 🇷🇺 Russia [*CIDR]
+vless://75807638-6f19-01f4-ae08-38492ee85c88@178.72.181.95:52006?flow=xtls-rprx-vision&encryption=none&type=tcp&security=tls&fp=chrome#🇷🇺 WL 🇩🇪 Germany — #65
+vless://75807638-6f19-0a28-ae08-38492ee85c88@178.72.162.152:52006?type=tcp&security=tls&encryption=none&alpn=http%2F1.1&flow=xtls-rprx-vision&insecure=1#🇷🇺 WL 🇱🇹 Lithuania [*CIDR]
