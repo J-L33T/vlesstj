@@ -3,15 +3,25 @@
 Агрегатор VLESS подписок — только белые подсети РФ.
 Собирает URI из публичных репо, проверяет TCP+TLS,
 сохраняет ТОЛЬКО серверы из белых подсетей РФ.
+
+Улучшения v2:
+- увеличены таймауты (CONNECT 5s, TLS 6s)
+- retry-логика (3 попытки TCP с паузой)
+- снижен MAX_WORKERS (100 вместо 300)
+- DNS-резолв для hostname-конфигов
+- fallback: при 0 живых серверов старый vless.txt не перезаписывается
+- прогресс-лог каждые 50 проверенных серверов
 """
 
 import asyncio
 import ipaddress
+import socket
 import ssl
 import random
 import urllib.request
 from datetime import datetime, timezone
 from urllib.parse import unquote
+
 
 # ─── Источники подписок ────────────────────────────────────────────────────────
 SOURCES = [
@@ -66,9 +76,27 @@ WHITE_SUBNETS = [
 _WHITE_NETS = [ipaddress.ip_network(s, strict=False) for s in WHITE_SUBNETS]
 
 # ─── Настройки ─────────────────────────────────────────────────────────────────
-CONNECT_TIMEOUT = 2.5
-TLS_TIMEOUT     = 3.0
-MAX_WORKERS     = 300
+CONNECT_TIMEOUT = 5.0   # было 2.5 — слишком мало для Actions→РФ latency
+TLS_TIMEOUT     = 6.0   # было 3.0
+MAX_WORKERS     = 100   # было 300 — высокий burst вызывал потери пакетов
+TCP_RETRIES     = 3     # количество попыток TCP connect
+RETRY_DELAY     = 0.5   # пауза между попытками TCP (сек)
+LOG_INTERVAL    = 50    # прогресс-лог каждые N проверенных серверов
+
+# ─── DNS-кэш (чтобы не резолвить одно и то же много раз) ─────────────────────
+_dns_cache: dict[str, str | None] = {}
+
+def resolve_host(host: str) -> str | None:
+    """Резолвит hostname в IP. Возвращает IP-строку или None при ошибке."""
+    if host in _dns_cache:
+        return _dns_cache[host]
+    try:
+        ip = socket.gethostbyname(host)
+        _dns_cache[host] = ip
+        return ip
+    except Exception:
+        _dns_cache[host] = None
+        return None
 
 # ─── Парсинг URI ───────────────────────────────────────────────────────────────
 def parse_uri(line: str) -> dict | None:
@@ -89,11 +117,23 @@ def parse_uri(line: str) -> dict | None:
     return None
 
 def is_in_white_subnet(host: str) -> bool:
+    """
+    Проверяет, входит ли host в белые подсети РФ.
+    Если host — доменное имя, сначала резолвит его в IP.
+    """
     try:
         ip = ipaddress.ip_address(host)
         return any(ip in net for net in _WHITE_NETS)
     except ValueError:
-        return False  # hostname — не считаем белым
+        # hostname — пробуем DNS-резолв
+        resolved = resolve_host(host)
+        if resolved is None:
+            return False
+        try:
+            ip = ipaddress.ip_address(resolved)
+            return any(ip in net for net in _WHITE_NETS)
+        except Exception:
+            return False
 
 # ─── Загрузка источников — только белые IP ────────────────────────────────────
 def fetch_white_uris() -> list[dict]:
@@ -114,26 +154,37 @@ def fetch_white_uris() -> list[dict]:
                         count += 1
             print(f" → +{count} белых (всего: {len(seen)})")
         except Exception as e:
-            print(f" [!] Ошибка: {e}")
+            print(f" [!] Ошибка загрузки {url.split('/')[-1]}: {e}")
 
     result = list(seen.values())
     print(f"\n[*] Уникальных белых URI для проверки: {len(result)}")
     return result
 
-# ─── Проверка TCP + TLS ────────────────────────────────────────────────────────
+# ─── Проверка TCP + TLS с retry ───────────────────────────────────────────────
 async def check_server(server: dict, semaphore: asyncio.Semaphore) -> dict | None:
     host, port = server["host"], server["port"]
     async with semaphore:
-        try:
-            _, w = await asyncio.wait_for(
-                asyncio.open_connection(host, port), timeout=CONNECT_TIMEOUT)
-            w.close()
+        # TCP connect — несколько попыток
+        tcp_ok = False
+        for attempt in range(TCP_RETRIES):
             try:
-                await w.wait_closed()
+                _, w = await asyncio.wait_for(
+                    asyncio.open_connection(host, port), timeout=CONNECT_TIMEOUT)
+                w.close()
+                try:
+                    await w.wait_closed()
+                except Exception:
+                    pass
+                tcp_ok = True
+                break
             except Exception:
-                pass
-        except Exception:
+                if attempt < TCP_RETRIES - 1:
+                    await asyncio.sleep(RETRY_DELAY)
+
+        if not tcp_ok:
             return None
+
+        # TLS handshake
         try:
             ctx = ssl.create_default_context()
             ctx.check_hostname = False
@@ -151,7 +202,8 @@ async def check_server(server: dict, semaphore: asyncio.Semaphore) -> dict | Non
 
 async def scan(servers: list[dict]) -> list[dict]:
     semaphore = asyncio.Semaphore(MAX_WORKERS)
-    print(f"[*] Проверяю {len(servers)} белых серверов (TCP+TLS)...")
+    total = len(servers)
+    print(f"[*] Проверяю {total} белых серверов (TCP×{TCP_RETRIES}+TLS, workers={MAX_WORKERS})...")
     tasks = [check_server(s, semaphore) for s in servers]
     results = []
     done = 0
@@ -161,6 +213,9 @@ async def scan(servers: list[dict]) -> list[dict]:
         if result:
             results.append(result)
             print(f"[+] {result['host']}:{result['port']}")
+        # Прогресс каждые LOG_INTERVAL серверов
+        if done % LOG_INTERVAL == 0:
+            print(f"[~] Прогресс: {done}/{total} проверено, живых: {len(results)}")
     print(f"\n[*] Живых белых: {len(results)} из {done}")
     return results
 
@@ -168,12 +223,14 @@ async def scan(servers: list[dict]) -> list[dict]:
 async def main():
     candidates = fetch_white_uris()
     if not candidates:
-        print("[!] Нет белых URI для проверки")
+        print("[!] Нет белых URI для проверки — выход без изменения vless.txt")
         return
 
     living = await scan(candidates)
+
+    # Fallback: не перезаписываем файл если 0 живых (защита от сбоя сети в Actions)
     if not living:
-        print("[!] Нет живых белых серверов")
+        print("[!] Нет живых белых серверов — оставляю старый vless.txt без изменений")
         return
 
     random.shuffle(living)
@@ -195,9 +252,11 @@ async def main():
             uri = f"{uri}#\U0001f1f7\U0001f1fa WL"
         lines.append(uri)
 
-    with open("vless.txt", "w") as f:
+    with open("vless.txt", "w", encoding="utf-8") as f:
         f.write("\n".join(lines) + "\n")
-    print(f"[*] Сохранено {len(living)} белых серверов в vless.txt")
+
+    print(f"\n[✓] vless.txt обновлён: {len(living)} живых белых серверов")
+
 
 if __name__ == "__main__":
     asyncio.run(main())
