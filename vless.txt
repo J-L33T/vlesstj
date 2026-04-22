@@ -1,22 +1,24 @@
 # profile-title: JL33T_WL
-# Обновлено: 2026-04-22 08:51 UTC
-# Серверов: 17 (только белые подсети РФ)
+# Обновлено: 2026-04-22 10:22 UTC
+# Серверов: 19 (только белые подсети РФ)
 # Источники: zieng2, igareck, whoahaow, kort0881
 
-vless://75807638-6f19-07d0-ae08-38492ee85c88@178.72.181.69:52006?type=tcp&security=tls&encryption=none&fp=chrome&flow=xtls-rprx-vision&insecure=1#🇷🇺 WL 🇷🇺 Russia [*CIDR]
-vless://75807638-6f19-07d0-ae08-38492ee85c88@178.72.181.41:52006?type=tcp&security=tls&encryption=none&flow=xtls-rprx-vision&insecure=1#🇷🇺 WL 🇷🇺 Russia [*CIDR]
-vless://75807638-6f19-01f4-ae08-38492ee85c88@cluster-de-2.firstvideocdn.ru:52006?allowInsecure=1&type=tcp&security=tls&encryption=none&flow=xtls-rprx-vision&sni=cluster-de-2.firstvideocdn.ru#🇷🇺 WL 🇩🇪 Germany | 🌐 | [IPv6] [*CIDR]
-vless://75807638-6f19-01f4-ae08-38492ee85c88@cluster-de-1.firstvideocdn.ru:52006?type=tcp&security=tls&encryption=none&sni=cluster-de-1.firstvideocdn.ru&flow=xtls-rprx-vision&insecure=1#🇷🇺 WL 🇩🇪 Germany | 🌐 [*CIDR]
-vless://75807638-6f19-07d0-ae08-38492ee85c88@cluster-russia-3.firstvideocdn.ru:52006?allowInsecure=1&type=tcp&security=tls&encryption=none&flow=xtls-rprx-vision&sni=cluster-russia-3.firstvideocdn.ru#🇷🇺 WL 🇷🇺 Russia [*CIDR]
-vless://787b85f3-ca2b-4fba-bedc-24a5ebe52d9b@95.163.183.144:443?flow=xtls-rprx-vision&encryption=none&type=tcp&security=reality&fp=chrome&sni=eh.vk.ru&pbk=Oc4VtwpdXGT4jlQZVEEgTTjeBx97uJ0sON2ek629plE&sid=c819b82438d315&spx=%2F#🇷🇺 WL 🇷🇴 Romania — #441
+vless://fabb7e5f-6032-41f4-a83c-4693dd2d2977@178.154.243.81:7443?flow=xtls-rprx-vision&encryption=none&type=tcp&security=reality&sni=vkvideo.ru&pbk=mx8lvdl-BaXjQ8DjkeSnVrnvQkgikbaQCgbPjUqJ1BM&sid=5FA44664f6a566d3#🇷🇺 WL 🇩🇪 Germany — #197
 vless://75807638-6f19-07d0-ae08-38492ee85c88@178.72.181.42:52006?allowInsecure=1&insecure=1&type=tcp&security=tls&fp=chrome&flow=xtls-rprx-vision#🇷🇺 WL 🇷🇺 Russia [*CIDR]
-vless://75807638-6f19-07d0-ae08-38492ee85c88@178.72.181.28:52006?type=tcp&security=tls&encryption=none&fp=chrome&flow=xtls-rprx-vision&insecure=1#🇷🇺 WL 🇷🇺 Russia [*CIDR]
-vless://75807638-6f19-07d0-ae08-38492ee85c88@178.72.181.43:52006?type=tcp&security=tls&encryption=none&fp=chrome&flow=xtls-rprx-vision&insecure=1#🇷🇺 WL 🇷🇺 Russia [*CIDR]
-vless://75807638-6f19-07d0-ae08-38492ee85c88@178.72.181.45:52006?type=tcp&security=tls&encryption=none&fp=chrome&flow=xtls-rprx-vision&insecure=1#🇷🇺 WL 🇷🇺 Russia [*CIDR]
-vless://75807638-6f19-1f40-ae08-38492ee85c88@178.72.181.24:52006?type=tcp&security=tls&encryption=none&fp=chrome&flow=xtls-rprx-vision&insecure=1#🇷🇺 WL 🇳🇱 The Netherlands | 🌐 | [IPv6] [*CIDR]
-vless://75807638-6f19-01f4-ae08-38492ee85c88@178.72.181.93:52006?type=tcp&security=tls&encryption=none&fp=chrome&flow=xtls-rprx-vision&insecure=1#🇷🇺 WL 🇩🇪 Germany | 🌐 | [IPv6] [*CIDR]
-vless://75807638-6f19-0bb8-ae08-38492ee85c88@178.72.181.86:52006?type=tcp&security=tls&encryption=none&fp=chrome&flow=xtls-rprx-vision&insecure=1#🇷🇺 WL 🇫🇮 Finland | 🌐 [*CIDR]
-vless://75807638-6f19-2710-ae08-38492ee85c88@178.72.181.84:52006?encryption=none&flow=xtls-rprx-vision&security=tls&sni=cluster-de-1.firstvideocdn.ru&fp=chrome&insecure=0&allowInsecure=0&type=tcp&headerType=none#🇷🇺 WL 🇵🇱 Poland | 🌐 | [IPv6] [*CIDR]
-vless://0400ddc8-1abd-45f4-9235-b5cd0a8711d3@95.163.183.153:443?flow=xtls-rprx-vision&encryption=none&type=tcp&security=reality&fp=chrome&sni=max.ru&pbk=WMxeIwYTE4Mq8Xcx02g_Q-7tO872yX_CkRqH_nJULzY&sid=2592b73deaedbac7#🇷🇺 WL 🇸🇰 Slovakia — #460
-vless://75807638-6f19-07d0-ae08-38492ee85c88@178.72.181.71:52006?allowInsecure=1&insecure=1&type=tcp&security=tls&fp=chrome&flow=xtls-rprx-vision#🇷🇺 WL 🇷🇺 Russia [*CIDR]
+vless://75807638-6f19-01f4-ae08-38492ee85c88@178.72.181.84:52006?allowInsecure=0&encryption=none&flow=xtls-rprx-vision&headerType=none&insecure=0&security=tls&sni=cluster-de-1.firstvideocdn.ru&type=tcp#🇷🇺 WL 🇩🇪 Germany | 🌐 | [IPv6] [*CIDR]
 vless://75807638-6f19-07d0-ae08-38492ee85c88@178.72.181.40:52006?allowInsecure=1&insecure=1&type=tcp&security=tls&sni=cluster-russia-3.firstvideocdn.ru&fp=chrome&flow=xtls-rprx-vision#🇷🇺 WL 🇷🇺 Russia [*CIDR]
+vless://75807638-6f19-01f4-ae08-38492ee85c88@cluster-de-2.firstvideocdn.ru:52006?allowInsecure=1&type=tcp&security=tls&encryption=none&flow=xtls-rprx-vision&sni=cluster-de-2.firstvideocdn.ru#🇷🇺 WL 🇩🇪 Germany | 🌐 | [IPv6] [*CIDR]
+vless://75807638-6f19-07d0-ae08-38492ee85c88@178.72.181.43:52006?allowInsecure=1&insecure=1&type=tcp&security=tls&fp=chrome&flow=xtls-rprx-vision#🇷🇺 WL 🇷🇺 Russia [*CIDR]
+vless://0400ddc8-1abd-45f4-9235-b5cd0a8711d3@95.163.183.153:443?flow=xtls-rprx-vision&encryption=none&type=tcp&security=reality&fp=chrome&sni=max.ru&pbk=WMxeIwYTE4Mq8Xcx02g_Q-7tO872yX_CkRqH_nJULzY&sid=2592b73deaedbac7#🇷🇺 WL 🇸🇰 Slovakia — #458
+vless://787b85f3-ca2b-4fba-bedc-24a5ebe52d9b@95.163.183.144:443?flow=xtls-rprx-vision&encryption=none&type=tcp&security=reality&fp=chrome&sni=eh.vk.ru&pbk=Oc4VtwpdXGT4jlQZVEEgTTjeBx97uJ0sON2ek629plE&sid=c819b82438d315&spx=%2F#🇷🇺 WL 🇷🇴 Romania — #440
+vless://75807638-6f19-0bb8-ae08-38492ee85c88@178.72.181.86:52006?type=tcp&security=tls&encryption=none&fp=chrome&flow=xtls-rprx-vision&insecure=1#🇷🇺 WL 🇫🇮 Finland | 🌐 | [IPv6] [*CIDR]
+vless://75807638-6f19-07d0-ae08-38492ee85c88@cluster-russia-1.firstvideocdn.ru:52006?&security=tls&flow=xtls-rprx-vision&fp=chrome&sni=cluster-russia-1.firstvideocdn.ru&type=tcp&headerType=none&host=cluster-russia-1.firstvideocdn.ru&path=%2F#🇷🇺 WL 🇷🇺 Russia [*CIDR]
+vless://75807638-6f19-07d0-ae08-38492ee85c88@178.72.181.71:52006?allowInsecure=1&insecure=1&type=tcp&security=tls&fp=chrome&flow=xtls-rprx-vision#🇷🇺 WL 🇷🇺 Russia [*CIDR]
+vless://75807638-6f19-07d0-ae08-38492ee85c88@178.72.181.45:52006?type=tcp&security=tls&encryption=none&fp=chrome&flow=xtls-rprx-vision&insecure=1#🇷🇺 WL 🇷🇺 Russia [*CIDR]
+vless://75807638-6f19-07d0-ae08-38492ee85c88@178.72.181.28:52006?type=tcp&security=tls&encryption=none&fp=chrome&flow=xtls-rprx-vision&insecure=1#🇷🇺 WL 🇷🇺 Russia [*CIDR]
+vless://75807638-6f19-07d0-ae08-38492ee85c88@178.72.181.69:52006?allowInsecure=1&insecure=1&type=tcp&security=tls&fp=chrome&flow=xtls-rprx-vision#🇷🇺 WL 🇷🇺 Russia [*CIDR]
+vless://75807638-6f19-07d0-ae08-38492ee85c88@178.72.181.54:52006?type=tcp&security=tls&encryption=none&fp=chrome&flow=xtls-rprx-vision&insecure=1#🇷🇺 WL 🇷🇺 Russia [*CIDR]
+vless://fabb7e5f-6032-41f4-a83c-4693dd2d2977@178.154.243.81:8443?flow=xtls-rprx-vision&encryption=none&type=tcp&security=reality&sni=vkvideo.ru&pbk=ldGnC9wnr5RpLeHDtixSJhVHNI3S2kl-vhMhP1rVJEc&sid=6FA44664f6a566d4#🇷🇺 WL 🇷🇺 Yandex — #4
+vless://75807638-6f19-07d0-ae08-38492ee85c88@cluster-russia-3.firstvideocdn.ru:52006?type=tcp&security=tls&encryption=none&sni=cluster-russia-3.firstvideocdn.ru&fp=chrome&flow=xtls-rprx-vision&insecure=1#🇷🇺 WL 🇷🇺 Russia [*CIDR]
+vless://75807638-6f19-1f40-ae08-38492ee85c88@178.72.181.24:52006?type=tcp&security=tls&encryption=none&fp=chrome&flow=xtls-rprx-vision&insecure=1#🇷🇺 WL 🇳🇱 The Netherlands | 🌐 | [IPv6] [*CIDR]
+vless://75807638-6f19-07d0-ae08-38492ee85c88@178.72.181.41:52006?allowInsecure=1&insecure=1&type=tcp&security=tls&flow=xtls-rprx-vision#🇷🇺 WL 🇷🇺 Russia [*CIDR]
