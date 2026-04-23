@@ -23,53 +23,39 @@ from datetime import datetime, timezone
 from urllib.parse import unquote
 
 
-# ─── Все источники конфигов ───────────────────────────────────────────────────
-ALL_SOURCES = [
-    # zieng2 — специально для белых списков, тестируется на реальных симках
+# ─── Источники по приоритетам ─────────────────────────────────────────────────
+# Группа 1: верифицированы на реальных симках МТС/Теле2 — идут первыми
+PRIORITY_1 = [
     "https://raw.githubusercontent.com/zieng2/wl/refs/heads/main/vless_lite.txt",
     "https://raw.githubusercontent.com/zieng2/wl/refs/heads/main/vless_universal.txt",
-
-    # whoahaow bypass — протестированы через Xray-core, отсортированы по пингу
     "https://raw.githubusercontent.com/whoahaow/rjsxrd/refs/heads/main/githubmirror/bypass/bypass-all.txt",
     "https://raw.githubusercontent.com/whoahaow/rjsxrd/refs/heads/main/githubmirror/bypass-unsecure/bypass-unsecure-all.txt",
-    "https://raw.githubusercontent.com/whoahaow/rjsxrd/refs/heads/main/githubmirror/default/all.txt",
-    "https://raw.githubusercontent.com/whoahaow/rjsxrd/refs/heads/main/githubmirror/default/all-secure.txt",
+]
 
-    # igareck — реальные проверки, обновляется каждые 1-2 часа
+# Группа 2: проверены, но не на симках — добираем если не хватает до лимита
+PRIORITY_2 = [
     "https://raw.githubusercontent.com/igareck/vpn-configs-for-russia/refs/heads/main/Vless-Reality-White-Lists-Rus-Mobile.txt",
     "https://raw.githubusercontent.com/igareck/vpn-configs-for-russia/refs/heads/main/Vless-Reality-White-Lists-Rus-Mobile-2.txt",
     "https://raw.githubusercontent.com/igareck/vpn-configs-for-russia/refs/heads/main/WHITE-SNI-RU-all.txt",
-
-    # kort0881
+    "https://raw.githubusercontent.com/whoahaow/rjsxrd/refs/heads/main/githubmirror/default/all.txt",
+    "https://raw.githubusercontent.com/whoahaow/rjsxrd/refs/heads/main/githubmirror/default/all-secure.txt",
     "https://raw.githubusercontent.com/kort0881/vpn-vless-configs-russia/refs/heads/main/githubmirror/clean/vless.txt",
-
-    # STR97/STRUGOV
     "https://raw.githubusercontent.com/STR97/STRUGOV/refs/heads/main/STR.BYPASS",
     "https://raw.githubusercontent.com/STR97/STRUGOV/refs/heads/main/STR",
     "https://raw.githubusercontent.com/STR97/STRUGOV/refs/heads/main/BYPASS",
     "https://raw.githubusercontent.com/STR97/STRUGOV/refs/heads/main/Vless",
     "https://raw.githubusercontent.com/STR97/STRUGOV/refs/heads/main/CUSTOM",
-
-    # LowiKLive
     "https://raw.githubusercontent.com/LowiKLive/BypassWhitelistRu/refs/heads/main/WhiteList-Bypass_Ru.txt",
-
-    # Kirillo4ka
     "https://raw.githubusercontent.com/Kirillo4ka/vpn-configs-for-russia/refs/heads/main/Vless-Rus-Mobile-White-List.txt",
-
-    # liMilCo/v2r
     "https://raw.githubusercontent.com/liMilCo/v2r/refs/heads/main/all_configs.txt",
-
-    # vlesscollector
     "https://raw.githubusercontent.com/vlesscollector/vlesscollector/refs/heads/main/vless_configs.txt",
-
-    # 55prosek-lgtm
     "https://raw.githubusercontent.com/55prosek-lgtm/vpn_config_for_russia/refs/heads/main/whitelist.txt",
-
-    # rachikop
     "https://raw.githubusercontent.com/rachikop/mobile_whitelist/refs/heads/main/vless.txt",
     "https://raw.githubusercontent.com/rachikop/mobile_whitelist/refs/heads/main/subscription.txt",
     "https://raw.githubusercontent.com/rachikop/mobile_whitelist/refs/heads/main/configs.txt",
 ]
+
+LIMIT = 40  # максимум серверов в итоговой подписке
 
 # ─── Источник белых подсетей (динамический) ───────────────────────────────────
 CIDR_WHITELIST_URL = "https://raw.githubusercontent.com/hxehex/russia-mobile-internet-whitelist/main/cidrwhitelist.txt"
@@ -148,10 +134,17 @@ def is_in_white_subnet(host: str) -> bool:
             return False
 
 
+def is_reality(line: str) -> bool:
+    """Проверяет наличие security=reality в URI."""
+    return "security=reality" in line.lower()
+
+
 def parse_uri(line: str) -> dict | None:
     line = line.strip()
     if not line.startswith("vless://"):
         return None
+    if not is_reality(line):
+        return None  # берём только Reality
     try:
         without_scheme = line[8:]
         at_idx = without_scheme.rfind("@")
@@ -176,18 +169,24 @@ def parse_uri(line: str) -> dict | None:
         return None
 
 
-def fetch_all() -> dict[str, dict]:
-    """Загружает все источники, фильтрует по белым подсетям, дедуплицирует."""
-    seen: dict[str, dict] = {}
-    for url in ALL_SOURCES:
+def fetch_sources(urls: list[str], label: str, seen: dict, limit: int = 0) -> dict:
+    """
+    Загружает источники, фильтрует по белым подсетям + Reality, дедуплицирует.
+    Если limit > 0 — останавливается как только набрал нужное количество.
+    """
+    for url in urls:
+        if limit and len(seen) >= limit:
+            break
         short = f"{url.split('/')[3]}/{url.split('/')[4]}/{url.split('/')[-1]}"
         try:
-            print(f"[*] {short}")
+            print(f"[*] [{label}] {short}")
             req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
             with urllib.request.urlopen(req, timeout=15) as r:
                 text = r.read().decode(errors="ignore")
             count = 0
             for line in text.splitlines():
+                if limit and len(seen) >= limit:
+                    break
                 parsed = parse_uri(line)
                 if not parsed:
                     continue
@@ -196,7 +195,7 @@ def fetch_all() -> dict[str, dict]:
                 if is_in_white_subnet(parsed["host"]):
                     seen[parsed["dedup_key"]] = parsed
                     count += 1
-            print(f"    → +{count} (итого: {len(seen)})")
+            print(f"    → +{count} Reality (итого: {len(seen)})")
         except Exception as e:
             print(f"    [!] Ошибка: {e}")
     return seen
@@ -225,20 +224,33 @@ def build_subscription(servers: list[dict]) -> str:
 def main():
     load_white_subnets()
 
-    print(f"\n[*] Загружаю источники (без TCP-проверки)...")
-    all_servers = fetch_all()
+    seen: dict = {}
 
-    if not all_servers:
+    # Группа 1: приоритетные источники (верифицированы на симках)
+    print(f"\n[*] Группа 1 — верифицированные источники (лимит {LIMIT})...")
+    fetch_sources(PRIORITY_1, "P1", seen, limit=LIMIT)
+
+    # Группа 2: добираем до лимита если P1 не хватило
+    if len(seen) < LIMIT:
+        remaining = LIMIT - len(seen)
+        print(f"\n[*] Группа 2 — добираем ещё {remaining} до лимита {LIMIT}...")
+        fetch_sources(PRIORITY_2, "P2", seen, limit=LIMIT)
+
+    if not seen:
         print("[!] Нет серверов — оставляю старый vless.txt без изменений")
         return
 
-    final = list(all_servers.values())
+    final = list(seen.values())
     random.shuffle(final)
+    final = final[:LIMIT]  # жёсткая обрезка на случай если лимит в fetch не сработал
+
+    print(f"\n[*] Итого: {len(final)} Reality-серверов в белых подсетях РФ")
+    print(f"    (лимит {LIMIT}, фильтр: security=reality + белые CIDR)")
 
     with open("vless.txt", "w", encoding="utf-8") as f:
         f.write(build_subscription(final))
 
-    print(f"\n[✓] vless.txt обновлён: {len(final)} серверов в белых подсетях РФ")
+    print(f"[✓] vless.txt обновлён")
 
 
 if __name__ == "__main__":
