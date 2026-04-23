@@ -132,7 +132,7 @@ PRIORITY_2 = [
 ]
 
 LIMIT = 100
-P1_LIMIT = 50   # P1 отдаёт не более 50, остальное добирает P2
+P1_LIMIT = 100  # P1 занимает все слоты — только верифицированные источники
 
 # ─── TCP-проверка (только для P1 — они верифицированы на симках но протухают) ─
 CONNECT_TIMEOUT = 4.0
@@ -463,14 +463,9 @@ async def main():
     seen: dict = {}
     all_rejected: list[str] = []
 
-    # P1: верифицированные источники, лимит P1_LIMIT, без TCP-проверки
+    # P1: только верифицированные источники, без P2
     print(f"\n[*] Группа 1 — верифицированные источники (лимит {P1_LIMIT})...")
     all_rejected += fetch_sources(PRIORITY_1, "P1", seen, limit=P1_LIMIT)
-
-    # P2: добираем до LIMIT
-    if len(seen) < LIMIT:
-        print(f"\n[*] Группа 2 — добираем до {LIMIT} (сейчас {len(seen)})...")
-        all_rejected += fetch_sources(PRIORITY_2, "P2", seen, limit=LIMIT)
 
     # Диагностика: топ ASN среди срезанных по IP
     if all_rejected:
