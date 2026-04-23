@@ -1,18 +1,14 @@
 #!/usr/bin/env python3
 """
-Агрегатор VLESS подписок — только белые подсети РФ (v4).
+Агрегатор VLESS подписок — белые подсети РФ (v5).
 
-Ключевое изменение v4:
-- TCP+TLS проверка полностью убрана.
-  Причина: GitHub Actions runner находится в Европе, и многие серверы
-  которые реально работают через МТС/Теле2 не отвечают из-за рубежа —
-  либо фаервол, либо высокий latency, либо DPI на входе. Итог: мы
-  отсеивали рабочие серверы и оставляли только те что случайно
-  отвечают из Европы (6 из 154 пингуются на МТС).
-- Единственный фильтр — принадлежность IP к белым подсетям РФ из
-  актуального списка hxehex/russia-mobile-internet-whitelist.
-- Мёртвые серверы клиент (v2rayTUN/v2rayNG) отфильтрует сам через URL Test.
-- Дедупликация по (uuid, host, port) сохранена.
+Изменения v5:
+- Двойной фильтр: IP в белых CIDR + SNI из белого списка доменов РФ.
+  Причина: МТС/Теле2 проверяют оба — белый IP недостаточно, SNI тоже
+  должен быть российским (yandex.ru, vk.com, mts.ru и т.п.).
+- Белые домены тянутся динамически из hxehex/whitelist.txt.
+- Лимит увеличен до 100 — при двойном фильтре качество высокое.
+- Только Reality, дедупликация по (uuid, host, port).
 """
 
 import ipaddress
@@ -20,20 +16,20 @@ import socket
 import random
 import urllib.request
 from datetime import datetime, timezone
-from urllib.parse import unquote
+from urllib.parse import unquote, urlparse, parse_qs
 
 
 # ─── Источники по приоритетам ─────────────────────────────────────────────────
-# Группа 1: верифицированы на реальных симках МТС/Теле2 — идут первыми
 PRIORITY_1 = [
+    # верифицированы на реальных симках МТС/Теле2
     "https://raw.githubusercontent.com/zieng2/wl/refs/heads/main/vless_lite.txt",
     "https://raw.githubusercontent.com/zieng2/wl/refs/heads/main/vless_universal.txt",
     "https://raw.githubusercontent.com/whoahaow/rjsxrd/refs/heads/main/githubmirror/bypass/bypass-all.txt",
     "https://raw.githubusercontent.com/whoahaow/rjsxrd/refs/heads/main/githubmirror/bypass-unsecure/bypass-unsecure-all.txt",
 ]
 
-# Группа 2: проверены, но не на симках — добираем если не хватает до лимита
 PRIORITY_2 = [
+    # проверены, но не на симках — добираем если P1 не хватило
     "https://raw.githubusercontent.com/igareck/vpn-configs-for-russia/refs/heads/main/Vless-Reality-White-Lists-Rus-Mobile.txt",
     "https://raw.githubusercontent.com/igareck/vpn-configs-for-russia/refs/heads/main/Vless-Reality-White-Lists-Rus-Mobile-2.txt",
     "https://raw.githubusercontent.com/igareck/vpn-configs-for-russia/refs/heads/main/WHITE-SNI-RU-all.txt",
@@ -55,29 +51,39 @@ PRIORITY_2 = [
     "https://raw.githubusercontent.com/rachikop/mobile_whitelist/refs/heads/main/configs.txt",
 ]
 
-LIMIT = 40  # максимум серверов в итоговой подписке
+LIMIT = 100  # максимум серверов в итоговой подписке
 
-# ─── Источник белых подсетей (динамический) ───────────────────────────────────
-CIDR_WHITELIST_URL = "https://raw.githubusercontent.com/hxehex/russia-mobile-internet-whitelist/main/cidrwhitelist.txt"
+# ─── Источники белых списков (hxehex) ─────────────────────────────────────────
+CIDR_URL    = "https://raw.githubusercontent.com/hxehex/russia-mobile-internet-whitelist/main/cidrwhitelist.txt"
+DOMAIN_URL  = "https://raw.githubusercontent.com/hxehex/russia-mobile-internet-whitelist/main/whitelist.txt"
 
-FALLBACK_WHITE_SUBNETS = [
+# Fallback CIDR
+FALLBACK_CIDRS = [
     "95.163.0.0/16", "87.240.0.0/16", "93.186.224.0/19",
     "185.30.176.0/22", "89.208.224.0/19", "94.100.176.0/22",
     "178.154.128.0/17", "5.45.192.0/18", "95.108.0.0/16",
-    "77.88.0.0/18", "87.250.224.0/19",
-    "178.72.128.0/17",
+    "77.88.0.0/18", "87.250.224.0/19", "178.72.128.0/17",
     "185.104.112.0/22", "194.58.96.0/19", "92.53.96.0/19",
-    "83.166.232.0/21",
-    "80.66.64.0/19", "85.142.24.0/21",
-    "213.234.0.0/16", "217.118.64.0/18",
-    "195.19.220.0/22", "213.248.96.0/19",
-    "212.193.0.0/19",
+    "83.166.232.0/21", "80.66.64.0/19", "85.142.24.0/21",
+    "213.234.0.0/16", "217.118.64.0/18", "195.19.220.0/22",
+    "213.248.96.0/19", "212.193.0.0/19",
 ]
 
-# ─── Глобальный список белых сетей ────────────────────────────────────────────
-_WHITE_NETS: list = []
+# Fallback домены — самые популярные российские
+FALLBACK_DOMAINS = {
+    "yandex.ru", "ya.ru", "vk.com", "mail.ru", "ok.ru",
+    "mts.ru", "beeline.ru", "megafon.ru", "tele2.ru",
+    "sberbank.ru", "gosuslugi.ru", "mos.ru", "rbc.ru",
+    "rt.ru", "1tv.ru", "ntv.ru", "ria.ru", "tass.ru",
+    "x5.ru", "5post.ru", "wildberries.ru", "ozon.ru",
+    "avito.ru", "hh.ru", "cdek.ru", "dns-shop.ru",
+    "ads.yandex.ru", "ads.x5.ru", "max.ru", "vk.ru",
+    "selectel.ru", "timeweb.com", "reg.ru", "2ip.ru",
+}
 
-# ─── DNS-кэш ──────────────────────────────────────────────────────────────────
+# ─── Глобальные структуры ─────────────────────────────────────────────────────
+_WHITE_NETS: list = []
+_WHITE_DOMAINS: set = set()
 _dns_cache: dict[str, str | None] = {}
 
 
@@ -93,13 +99,23 @@ def resolve_host(host: str) -> str | None:
         return None
 
 
-def load_white_subnets() -> None:
-    global _WHITE_NETS
+def _fetch_text(url: str) -> str | None:
     try:
-        print("[*] Загружаю белые подсети из hxehex/russia-mobile-internet-whitelist...")
-        req = urllib.request.Request(CIDR_WHITELIST_URL, headers={"User-Agent": "Mozilla/5.0"})
+        req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
         with urllib.request.urlopen(req, timeout=15) as r:
-            text = r.read().decode(errors="ignore")
+            return r.read().decode(errors="ignore")
+    except Exception as e:
+        print(f"    [!] Не удалось загрузить {url.split('/')[-1]}: {e}")
+        return None
+
+
+def load_whitelists() -> None:
+    global _WHITE_NETS, _WHITE_DOMAINS
+
+    # CIDR
+    print("[*] Загружаю белые подсети (hxehex/cidrwhitelist.txt)...")
+    text = _fetch_text(CIDR_URL)
+    if text:
         nets = []
         for line in text.splitlines():
             line = line.strip()
@@ -111,15 +127,38 @@ def load_white_subnets() -> None:
                 pass
         if nets:
             _WHITE_NETS = nets
-            print(f"    → Загружено {len(nets)} подсетей")
+            print(f"    → {len(nets)} подсетей")
         else:
-            raise ValueError("Пустой список")
-    except Exception as e:
-        print(f"    [!] Ошибка: {e} — использую fallback ({len(FALLBACK_WHITE_SUBNETS)} подсетей)")
-        _WHITE_NETS = [ipaddress.ip_network(s, strict=False) for s in FALLBACK_WHITE_SUBNETS]
+            _WHITE_NETS = [ipaddress.ip_network(s, strict=False) for s in FALLBACK_CIDRS]
+            print(f"    → fallback: {len(_WHITE_NETS)} подсетей")
+    else:
+        _WHITE_NETS = [ipaddress.ip_network(s, strict=False) for s in FALLBACK_CIDRS]
+        print(f"    → fallback: {len(_WHITE_NETS)} подсетей")
+
+    # Домены SNI
+    print("[*] Загружаю белые домены (hxehex/whitelist.txt)...")
+    text = _fetch_text(DOMAIN_URL)
+    if text:
+        domains = set()
+        for line in text.splitlines():
+            line = line.strip().lower()
+            if not line or line.startswith("#"):
+                continue
+            # файл может содержать IP или домены — берём только домены
+            if "." in line and not line[0].isdigit():
+                domains.add(line)
+        if domains:
+            _WHITE_DOMAINS = domains
+            print(f"    → {len(domains)} доменов")
+        else:
+            _WHITE_DOMAINS = FALLBACK_DOMAINS
+            print(f"    → fallback: {len(_WHITE_DOMAINS)} доменов")
+    else:
+        _WHITE_DOMAINS = FALLBACK_DOMAINS
+        print(f"    → fallback: {len(_WHITE_DOMAINS)} доменов")
 
 
-def is_in_white_subnet(host: str) -> bool:
+def is_white_ip(host: str) -> bool:
     try:
         ip = ipaddress.ip_address(host)
         return any(ip in net for net in _WHITE_NETS)
@@ -134,17 +173,41 @@ def is_in_white_subnet(host: str) -> bool:
             return False
 
 
-def is_reality(line: str) -> bool:
-    """Проверяет наличие security=reality в URI."""
-    return "security=reality" in line.lower()
+def is_white_sni(sni: str) -> bool:
+    """Проверяет SNI — домен или его родительский домен должен быть в белом списке."""
+    sni = sni.lower().strip()
+    if not sni:
+        return False
+    # прямое совпадение
+    if sni in _WHITE_DOMAINS:
+        return True
+    # проверяем родительские домены: sub.domain.ru → domain.ru → ru
+    parts = sni.split(".")
+    for i in range(1, len(parts)):
+        parent = ".".join(parts[i:])
+        if parent in _WHITE_DOMAINS:
+            return True
+    return False
+
+
+def extract_sni(uri: str) -> str:
+    """Извлекает значение sni= из VLESS URI."""
+    try:
+        q_start = uri.index("?")
+        fragment = uri.split("#")[0]
+        params = parse_qs(fragment[q_start + 1:])
+        sni_list = params.get("sni", [])
+        return sni_list[0] if sni_list else ""
+    except Exception:
+        return ""
 
 
 def parse_uri(line: str) -> dict | None:
     line = line.strip()
     if not line.startswith("vless://"):
         return None
-    if not is_reality(line):
-        return None  # берём только Reality
+    if "security=reality" not in line.lower():
+        return None
     try:
         without_scheme = line[8:]
         at_idx = without_scheme.rfind("@")
@@ -159,21 +222,19 @@ def parse_uri(line: str) -> dict | None:
         else:
             host, port_str = hostport_raw.rsplit(":", 1)
             port = int(port_str)
+        sni = extract_sni(line)
         return {
             "uri": line,
             "host": host,
             "port": port,
+            "sni": sni,
             "dedup_key": f"{uuid}@{host}:{port}",
         }
     except Exception:
         return None
 
 
-def fetch_sources(urls: list[str], label: str, seen: dict, limit: int = 0) -> dict:
-    """
-    Загружает источники, фильтрует по белым подсетям + Reality, дедуплицирует.
-    Если limit > 0 — останавливается как только набрал нужное количество.
-    """
+def fetch_sources(urls: list[str], label: str, seen: dict, limit: int = 0) -> None:
     for url in urls:
         if limit and len(seen) >= limit:
             break
@@ -188,17 +249,17 @@ def fetch_sources(urls: list[str], label: str, seen: dict, limit: int = 0) -> di
                 if limit and len(seen) >= limit:
                     break
                 parsed = parse_uri(line)
-                if not parsed:
+                if not parsed or parsed["dedup_key"] in seen:
                     continue
-                if parsed["dedup_key"] in seen:
+                if not is_white_ip(parsed["host"]):
                     continue
-                if is_in_white_subnet(parsed["host"]):
-                    seen[parsed["dedup_key"]] = parsed
-                    count += 1
-            print(f"    → +{count} Reality (итого: {len(seen)})")
+                if not is_white_sni(parsed["sni"]):
+                    continue
+                seen[parsed["dedup_key"]] = parsed
+                count += 1
+            print(f"    → +{count} (итого: {len(seen)})")
         except Exception as e:
             print(f"    [!] Ошибка: {e}")
-    return seen
 
 
 def build_subscription(servers: list[dict]) -> str:
@@ -206,7 +267,7 @@ def build_subscription(servers: list[dict]) -> str:
     lines = [
         "# profile-title: JL33T_WL",
         f"# Обновлено: {now}",
-        f"# Серверов: {len(servers)} (белые подсети РФ)",
+        f"# Серверов: {len(servers)} (белые IP + белый SNI)",
         "# Источники: zieng2, whoahaow, igareck, kort0881, STR97, LowiKLive, Kirillo4ka, liMilCo, vlesscollector, rachikop",
         "",
     ]
@@ -222,18 +283,15 @@ def build_subscription(servers: list[dict]) -> str:
 
 
 def main():
-    load_white_subnets()
+    load_whitelists()
 
     seen: dict = {}
 
-    # Группа 1: приоритетные источники (верифицированы на симках)
     print(f"\n[*] Группа 1 — верифицированные источники (лимит {LIMIT})...")
     fetch_sources(PRIORITY_1, "P1", seen, limit=LIMIT)
 
-    # Группа 2: добираем до лимита если P1 не хватило
     if len(seen) < LIMIT:
-        remaining = LIMIT - len(seen)
-        print(f"\n[*] Группа 2 — добираем ещё {remaining} до лимита {LIMIT}...")
+        print(f"\n[*] Группа 2 — добираем до {LIMIT} (сейчас {len(seen)})...")
         fetch_sources(PRIORITY_2, "P2", seen, limit=LIMIT)
 
     if not seen:
@@ -242,10 +300,9 @@ def main():
 
     final = list(seen.values())
     random.shuffle(final)
-    final = final[:LIMIT]  # жёсткая обрезка на случай если лимит в fetch не сработал
+    final = final[:LIMIT]
 
-    print(f"\n[*] Итого: {len(final)} Reality-серверов в белых подсетях РФ")
-    print(f"    (лимит {LIMIT}, фильтр: security=reality + белые CIDR)")
+    print(f"\n[*] Итого: {len(final)} серверов (Reality + белый IP + белый SNI)")
 
     with open("vless.txt", "w", encoding="utf-8") as f:
         f.write(build_subscription(final))
