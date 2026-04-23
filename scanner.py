@@ -245,19 +245,30 @@ def fetch_sources(urls: list[str], label: str, seen: dict, limit: int = 0) -> No
             with urllib.request.urlopen(req, timeout=15) as r:
                 text = r.read().decode(errors="ignore")
             count = 0
+            skip_not_reality = 0
+            skip_dup = 0
+            skip_ip = 0
+            skip_sni = 0
             for line in text.splitlines():
                 if limit and len(seen) >= limit:
                     break
                 parsed = parse_uri(line)
-                if not parsed or parsed["dedup_key"] in seen:
+                if not parsed:
+                    if line.strip().startswith("vless://"):
+                        skip_not_reality += 1
+                    continue
+                if parsed["dedup_key"] in seen:
+                    skip_dup += 1
                     continue
                 if not is_white_ip(parsed["host"]):
+                    skip_ip += 1
                     continue
                 if not is_white_sni(parsed["sni"]):
+                    skip_sni += 1
                     continue
                 seen[parsed["dedup_key"]] = parsed
                 count += 1
-            print(f"    → +{count} (итого: {len(seen)})")
+            print(f"    → +{count} (итого: {len(seen)}) | срезано: не-Reality={skip_not_reality} дубль={skip_dup} IP={skip_ip} SNI={skip_sni}")
         except Exception as e:
             print(f"    [!] Ошибка: {e}")
 
