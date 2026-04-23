@@ -463,14 +463,11 @@ async def main():
     seen: dict = {}
     all_rejected: list[str] = []
 
-    # P1: верифицированные источники, лимит P1_LIMIT, потом TCP-фильтр
-    print(f"\n[*] Группа 1 — верифицированные источники (набираем до {P1_LIMIT}, потом TCP-проверка)...")
+    # P1: верифицированные источники, лимит P1_LIMIT, без TCP-проверки
+    print(f"\n[*] Группа 1 — верифицированные источники (лимит {P1_LIMIT})...")
     all_rejected += fetch_sources(PRIORITY_1, "P1", seen, limit=P1_LIMIT)
-    # TCP-проверка P1 — отсеиваем совсем мёртвые
-    p1_alive = await tcp_filter(list(seen.values()))
-    seen = {s["dedup_key"]: s for s in p1_alive}
 
-    # P2: добираем до LIMIT без TCP-проверки
+    # P2: добираем до LIMIT
     if len(seen) < LIMIT:
         print(f"\n[*] Группа 2 — добираем до {LIMIT} (сейчас {len(seen)})...")
         all_rejected += fetch_sources(PRIORITY_2, "P2", seen, limit=LIMIT)
