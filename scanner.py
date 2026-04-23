@@ -227,7 +227,41 @@ def load_whitelists() -> None:
     print(f"    → fallback: {len(_WHITE_DOMAINS)} доменов + любой .ru")
 
 
-def resolve_host(host: str) -> str | None:
+def cymru_batch_asn(ips: list[str]) -> dict[str, str]:
+    """
+    Batch ASN lookup через whois.cymru.com.
+    Отправляет все IP одним запросом, возвращает dict ip → "ASN (name)".
+    """
+    if not ips:
+        return {}
+    result = {}
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.settimeout(15)
+        s.connect(("whois.cymru.com", 43))
+        # begin/end для batch режима
+        query = "begin\n" + "\n".join(ips) + "\nend\n"
+        s.sendall(query.encode())
+        response = b""
+        while True:
+            chunk = s.recv(4096)
+            if not chunk:
+                break
+            response += chunk
+        s.close()
+        for line in response.decode(errors="ignore").splitlines():
+            line = line.strip()
+            if not line or line.startswith("Bulk") or line.startswith("AS"):
+                continue
+            parts = [p.strip() for p in line.split("|")]
+            if len(parts) >= 3:
+                asn = parts[0]
+                ip = parts[1]
+                name = parts[2]
+                result[ip] = f"AS{asn} ({name})"
+    except Exception as e:
+        print(f"    [!] Cymru batch lookup: {e}")
+    return result
     if host in _dns_cache:
         return _dns_cache[host]
     try:
@@ -309,7 +343,9 @@ def parse_uri(line: str) -> dict | None:
         return None
 
 
-def fetch_sources(urls: list[str], label: str, seen: dict, limit: int = 0) -> None:
+def fetch_sources(urls: list[str], label: str, seen: dict, limit: int = 0) -> list[str]:
+    """Возвращает список IP которые были срезаны по IP фильтру — для диагностики ASN."""
+    rejected_ips: list[str] = []
     for url in urls:
         if limit and len(seen) >= limit:
             break
@@ -331,8 +367,16 @@ def fetch_sources(urls: list[str], label: str, seen: dict, limit: int = 0) -> No
                 if parsed["dedup_key"] in seen:
                     skip_dup += 1
                     continue
+                # Резолвим host в IP для логирования
+                host = parsed["host"]
+                try:
+                    ipaddress.ip_address(host)
+                    resolved_ip = host
+                except ValueError:
+                    resolved_ip = resolve_host(host) or host
                 if not is_white_ip(parsed["host"]):
                     skip_ip += 1
+                    rejected_ips.append(resolved_ip)
                     continue
                 if not is_white_sni(parsed["sni"]):
                     skip_sni += 1
@@ -342,6 +386,7 @@ def fetch_sources(urls: list[str], label: str, seen: dict, limit: int = 0) -> No
             print(f"    → +{count} (итого: {len(seen)}) | срезано: не-Reality={skip_nr} дубль={skip_dup} IP={skip_ip} SNI={skip_sni}")
         except Exception as e:
             print(f"    [!] Ошибка: {e}")
+    return rejected_ips
 
 
 def build_subscription(servers: list[dict]) -> str:
@@ -368,13 +413,34 @@ def main():
     load_whitelists()
 
     seen: dict = {}
+    all_rejected: list[str] = []
 
     print(f"\n[*] Группа 1 — верифицированные источники (лимит {LIMIT})...")
-    fetch_sources(PRIORITY_1, "P1", seen, limit=LIMIT)
+    all_rejected += fetch_sources(PRIORITY_1, "P1", seen, limit=LIMIT)
 
     if len(seen) < LIMIT:
         print(f"\n[*] Группа 2 — добираем до {LIMIT} (сейчас {len(seen)})...")
-        fetch_sources(PRIORITY_2, "P2", seen, limit=LIMIT)
+        all_rejected += fetch_sources(PRIORITY_2, "P2", seen, limit=LIMIT)
+
+    # Диагностика: топ ASN среди срезанных по IP
+    if all_rejected:
+        print(f"\n[*] Диагностика: {len(all_rejected)} срезанных IP — запрашиваю ASN (Cymru batch)...")
+        # Берём уникальные IP, не больше 200 за раз
+        unique_rejected = list(dict.fromkeys(
+            ip for ip in all_rejected
+            if ip != "unknown" and ip.replace(".", "").isdigit()
+        ))[:200]
+        asn_map = cymru_batch_asn(unique_rejected)
+        # Считаем частоту ASN
+        from collections import Counter
+        asn_counter: Counter = Counter()
+        for ip in unique_rejected:
+            asn = asn_map.get(ip, "unknown")
+            asn_counter[asn] += 1
+        print(f"[*] Топ-15 ASN среди срезанных серверов:")
+        for asn, count in asn_counter.most_common(15):
+            print(f"    {count:4d}x  {asn}")
+        print(f"[*] → Добавь эти ASN в TARGET_ASNS чтобы пропустить больше серверов")
 
     if not seen:
         print("[!] Нет серверов — оставляю старый vless.txt без изменений")
