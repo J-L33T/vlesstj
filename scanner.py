@@ -47,6 +47,15 @@ TARGET_ASNS = {
     "AS210226": "TimeWeb доп.",
     "AS57629":  "Serverius (Hetzner-like)",
     "AS60280":  "Aeza доп.",
+    # Добавлено по результатам диагностики Cymru (топ срезанных РУ ASN)
+    "AS210656": "YACLOUDBMS (RU)",        # 12 срезанных — крупнейший
+    "AS198610": "Beget (RU)",             # 4 срезанных
+    "AS216246": "Aeza RU-AEZA-AS",       # 4 срезанных
+    "AS208677": "Cloud.ru / Сбер (RU)",   # 3 срезанных
+    "AS12389":  "Ростелеком",
+    "AS34584":  "Ростелеком доп.",
+    "AS201153": "Oblako (RU)",
+    "AS48282":  "NordNet (RU)",
 }
 
 # Fallback подсети если RIPE API недоступен
@@ -262,6 +271,9 @@ def cymru_batch_asn(ips: list[str]) -> dict[str, str]:
     except Exception as e:
         print(f"    [!] Cymru batch lookup: {e}")
     return result
+
+
+def resolve_host(host: str) -> str | None:
     if host in _dns_cache:
         return _dns_cache[host]
     try:
