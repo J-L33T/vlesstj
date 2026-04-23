@@ -29,49 +29,54 @@ from urllib.parse import unquote, urlparse, parse_qs
 # Эти репы тестируют конфиги на реальных симках МТС/Теле2/Мегафон/Билайн
 TRUSTED_SOURCES = [
     # zieng2 — специально для белых списков, тестируется на реальных симках
-    "https://raw.githubusercontent.com/zieng2/wl/main/vless_lite.txt",
-    "https://raw.githubusercontent.com/zieng2/wl/main/vless_universal.txt",
+    "https://raw.githubusercontent.com/zieng2/wl/refs/heads/main/vless_lite.txt",
+    "https://raw.githubusercontent.com/zieng2/wl/refs/heads/main/vless_universal.txt",
 
     # whoahaow bypass — протестированы через Xray-core, отсортированы по пингу
-    "https://raw.githubusercontent.com/whoahaow/rjsxrd/main/githubmirror/bypass/bypass-all.txt",
-    "https://raw.githubusercontent.com/whoahaow/rjsxrd/main/githubmirror/bypass-unsecure/bypass-unsecure-all.txt",
+    "https://raw.githubusercontent.com/whoahaow/rjsxrd/refs/heads/main/githubmirror/bypass/bypass-all.txt",
+    "https://raw.githubusercontent.com/whoahaow/rjsxrd/refs/heads/main/githubmirror/bypass-unsecure/bypass-unsecure-all.txt",
 ]
 
 # ─── Источники: обычные (проходят TCP+TLS проверку) ──────────────────────────
 CHECKED_SOURCES = [
     # igareck — реальные проверки, обновляется каждые 1-2 часа
-    "https://raw.githubusercontent.com/igareck/vpn-configs-for-russia/main/Vless-Reality-White-Lists-Rus-Mobile.txt",
-    "https://raw.githubusercontent.com/igareck/vpn-configs-for-russia/main/Vless-Reality-White-Lists-Rus-Mobile-2.txt",
-    "https://raw.githubusercontent.com/igareck/vpn-configs-for-russia/main/WHITE-SNI-RU-all.txt",
-    "https://raw.githubusercontent.com/igareck/vpn-configs-for-russia/main/mts.txt",
-    "https://raw.githubusercontent.com/igareck/vpn-configs-for-russia/main/vless.txt",
-    "https://raw.githubusercontent.com/igareck/vpn-configs-for-russia/main/configs.txt",
+    "https://raw.githubusercontent.com/igareck/vpn-configs-for-russia/refs/heads/main/Vless-Reality-White-Lists-Rus-Mobile.txt",
+    "https://raw.githubusercontent.com/igareck/vpn-configs-for-russia/refs/heads/main/Vless-Reality-White-Lists-Rus-Mobile-2.txt",
+    "https://raw.githubusercontent.com/igareck/vpn-configs-for-russia/refs/heads/main/WHITE-SNI-RU-all.txt",
 
-    # whoahaow default (не bypass — обычные)
-    "https://raw.githubusercontent.com/whoahaow/rjsxrd/main/githubmirror/default/all.txt",
-    "https://raw.githubusercontent.com/whoahaow/rjsxrd/main/githubmirror/default/all-secure.txt",
+    # whoahaow default (не bypass — обычные конфиги)
+    "https://raw.githubusercontent.com/whoahaow/rjsxrd/refs/heads/main/githubmirror/default/all.txt",
+    "https://raw.githubusercontent.com/whoahaow/rjsxrd/refs/heads/main/githubmirror/default/all-secure.txt",
 
-    # kort0881 — ru-sni специально для белых списков
-    "https://raw.githubusercontent.com/kort0881/vpn-vless-configs-russia/main/githubmirror/ru-sni/vless_ru.txt",
-    "https://raw.githubusercontent.com/kort0881/vpn-vless-configs-russia/main/githubmirror/clean/vless.txt",
-    "https://raw.githubusercontent.com/kort0881/russia-whitelist/main/vless.txt",
+    # kort0881 — основная коллекция (работала в прошлом запуске)
+    "https://raw.githubusercontent.com/kort0881/vpn-vless-configs-russia/refs/heads/main/githubmirror/clean/vless.txt",
 
-    # rachikop — обход белых списков мобильных операторов
-    "https://raw.githubusercontent.com/rachikop/mobile_whitelist/main/vless.txt",
-    "https://raw.githubusercontent.com/rachikop/mobile_whitelist/main/configs.txt",
+    # STR97/STRUGOV — несколько файлов без расширений
+    "https://raw.githubusercontent.com/STR97/STRUGOV/refs/heads/main/STR.BYPASS",
+    "https://raw.githubusercontent.com/STR97/STRUGOV/refs/heads/main/STR",
+    "https://raw.githubusercontent.com/STR97/STRUGOV/refs/heads/main/BYPASS",
+    "https://raw.githubusercontent.com/STR97/STRUGOV/refs/heads/main/Vless",
+    "https://raw.githubusercontent.com/STR97/STRUGOV/refs/heads/main/CUSTOM",
 
     # LowiKLive — обход белых списков РФ
-    "https://raw.githubusercontent.com/LowiKLive/BypassWhitelistRu/main/WhiteList-Bypass_Ru.txt",
+    "https://raw.githubusercontent.com/LowiKLive/BypassWhitelistRu/refs/heads/main/WhiteList-Bypass_Ru.txt",
 
     # Kirillo4ka — форк igareck с доп. серверами
-    "https://raw.githubusercontent.com/Kirillo4ka/vpn-configs-for-russia/main/Vless-Rus-Mobile-White-List.txt",
+    "https://raw.githubusercontent.com/Kirillo4ka/vpn-configs-for-russia/refs/heads/main/Vless-Rus-Mobile-White-List.txt",
+
+    # liMilCo/v2r — агрегатор конфигов
+    "https://raw.githubusercontent.com/liMilCo/v2r/refs/heads/main/all_configs.txt",
+
+    # vlesscollector
+    "https://raw.githubusercontent.com/vlesscollector/vlesscollector/refs/heads/main/vless_configs.txt",
 
     # 55prosek-lgtm
-    "https://raw.githubusercontent.com/55prosek-lgtm/vpn_config_for_russia/main/whitelist.txt",
+    "https://raw.githubusercontent.com/55prosek-lgtm/vpn_config_for_russia/refs/heads/main/whitelist.txt",
 
-    # STR97/STRUGOV
-    "https://raw.githubusercontent.com/STR97/STRUGOV/main/STR.BYPASS",
-    "https://raw.githubusercontent.com/STR97/STRUGOV/main/BYPASS",
+    # rachikop — пробуем разные имена файлов
+    "https://raw.githubusercontent.com/rachikop/mobile_whitelist/refs/heads/main/vless.txt",
+    "https://raw.githubusercontent.com/rachikop/mobile_whitelist/refs/heads/main/subscription.txt",
+    "https://raw.githubusercontent.com/rachikop/mobile_whitelist/refs/heads/main/configs.txt",
 ]
 
 # ─── Источник белых подсетей (динамический) ───────────────────────────────────
