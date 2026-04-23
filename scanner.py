@@ -15,6 +15,7 @@
   Если RIPE недоступен — fallback на захардкоженные подсети.
 """
 
+import asyncio
 import ipaddress
 import json
 import random
@@ -131,6 +132,41 @@ PRIORITY_2 = [
 ]
 
 LIMIT = 100
+P1_LIMIT = 50   # P1 отдаёт не более 50, остальное добирает P2
+
+# ─── TCP-проверка (только для P1 — они верифицированы на симках но протухают) ─
+CONNECT_TIMEOUT = 4.0
+MAX_WORKERS     = 80
+
+
+async def _tcp_check(host: str, port: int, semaphore: asyncio.Semaphore) -> bool:
+    async with semaphore:
+        try:
+            _, w = await asyncio.wait_for(
+                asyncio.open_connection(host, port),
+                timeout=CONNECT_TIMEOUT
+            )
+            w.close()
+            try:
+                await w.wait_closed()
+            except Exception:
+                pass
+            return True
+        except Exception:
+            return False
+
+
+async def tcp_filter(servers: list[dict]) -> list[dict]:
+    """Оставляет только серверы которые отвечают на TCP connect."""
+    if not servers:
+        return []
+    semaphore = asyncio.Semaphore(MAX_WORKERS)
+    print(f"[*] TCP-проверка {len(servers)} серверов из P1 (timeout={CONNECT_TIMEOUT}s)...")
+    tasks = [_tcp_check(s["host"], s["port"], semaphore) for s in servers]
+    results = await asyncio.gather(*tasks)
+    alive = [s for s, ok in zip(servers, results) if ok]
+    print(f"    → живых: {len(alive)} из {len(servers)}")
+    return alive
 
 # ─── Белые домены SNI ─────────────────────────────────────────────────────────
 DOMAIN_URL = "https://raw.githubusercontent.com/hxehex/russia-mobile-internet-whitelist/main/whitelist.txt"
@@ -421,15 +457,20 @@ def build_subscription(servers: list[dict]) -> str:
     return "\n".join(lines) + "\n"
 
 
-def main():
+async def main():
     load_whitelists()
 
     seen: dict = {}
     all_rejected: list[str] = []
 
-    print(f"\n[*] Группа 1 — верифицированные источники (лимит {LIMIT})...")
-    all_rejected += fetch_sources(PRIORITY_1, "P1", seen, limit=LIMIT)
+    # P1: верифицированные источники, лимит P1_LIMIT, потом TCP-фильтр
+    print(f"\n[*] Группа 1 — верифицированные источники (набираем до {P1_LIMIT}, потом TCP-проверка)...")
+    all_rejected += fetch_sources(PRIORITY_1, "P1", seen, limit=P1_LIMIT)
+    # TCP-проверка P1 — отсеиваем совсем мёртвые
+    p1_alive = await tcp_filter(list(seen.values()))
+    seen = {s["dedup_key"]: s for s in p1_alive}
 
+    # P2: добираем до LIMIT без TCP-проверки
     if len(seen) < LIMIT:
         print(f"\n[*] Группа 2 — добираем до {LIMIT} (сейчас {len(seen)})...")
         all_rejected += fetch_sources(PRIORITY_2, "P2", seen, limit=LIMIT)
@@ -437,13 +478,11 @@ def main():
     # Диагностика: топ ASN среди срезанных по IP
     if all_rejected:
         print(f"\n[*] Диагностика: {len(all_rejected)} срезанных IP — запрашиваю ASN (Cymru batch)...")
-        # Берём уникальные IP, не больше 200 за раз
         unique_rejected = list(dict.fromkeys(
             ip for ip in all_rejected
             if ip != "unknown" and ip.replace(".", "").isdigit()
         ))[:200]
         asn_map = cymru_batch_asn(unique_rejected)
-        # Считаем частоту ASN
         from collections import Counter
         asn_counter: Counter = Counter()
         for ip in unique_rejected:
@@ -471,4 +510,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())
